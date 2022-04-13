@@ -1,6 +1,4 @@
-from select import select
 from tarfile import BLOCKSIZE
-from tkinter import RIGHT, font
 import pygame
 import random
 from enum import Enum
@@ -26,31 +24,7 @@ SPEED = 40
 
 class SnakeGame:
     
-    def __init__(self, w=1280, h=640):
-        pygame.init()
-        self.font = pygame.font.Font('Roboto-Regular.ttf', 25)
-        self.w = w
-        self.h = h
-
-        #init display
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
-        self.clock = pygame.time.Clock()
-
-        #init game state
-        self.direction = Direction.RIGHT
-
-        self.head = Point(self.w/2, self.h/2)
-        self.snake = [
-            self.head, 
-            Point(self.head.x - BLOCKSIZE, self.head.y), 
-            Point(self.head.x - (2 * BLOCKSIZE), self.head.y)
-        ]
-
-        self.score = 0
-        self.food = None
-        self._place_food()
-
+    #Private Helper functions
     def _update_ui(self):
         self.display.fill(BLACK)
 
@@ -97,9 +71,8 @@ class SnakeGame:
             return True
         
         #Collided with it self
-        for elem in self.snake[1:]:
-            if self.head.x == elem.x and self.head.y == elem.y:
-                return True
+        if self.head in self.snake[1:]:
+            return True
         
         #Collided with food
         if self.head.x == self.food.x and self.head.y == self.food.y:
@@ -110,8 +83,18 @@ class SnakeGame:
         return False
 
 
+    # Main Game functions
+    def __init__(self, w=1280, h=640):
+        pygame.init()
+        self.font = pygame.font.Font('Roboto-Regular.ttf', 25)
+        self.w = w
+        self.h = h
+        self.clock = pygame.time.Clock()
 
-    def play_step(self):
+        self.reset()
+
+    
+    def step(self):
         #1. Collect user Input
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -127,6 +110,8 @@ class SnakeGame:
                     self.direction = Direction.RIGHT
                 elif e.key == pygame.K_ESCAPE:
                     self.quit()
+                elif e.key == pygame.K_r:
+                    self.reset()
                 else:
                     continue
         #2. Move
@@ -141,12 +126,31 @@ class SnakeGame:
             return True, self.score
 
         #4. Update UI 
-        self._update_ui()
-        self.clock.tick(SPEED)
+        self.render()
 
         #5. return game_over, score
         return False, self.score
-         
+        
+    def render(self):
+        #init display
+        self.display = pygame.display.set_mode((self.w, self.h))
+        pygame.display.set_caption('Snake')
+        self._update_ui()
+        self.clock.tick(SPEED)
+    
+    def reset(self):
+        #init game state
+        self.direction = Direction.RIGHT
+
+        self.head = Point(self.w/2, self.h/2)
+        self.snake = [
+            self.head, 
+            Point(self.head.x - BLOCKSIZE, self.head.y), 
+            Point(self.head.x - (2 * BLOCKSIZE), self.head.y)
+        ]
+
+        self.score = 0
+        self._place_food()
 
     def quit(self):
         pygame.quit()
@@ -157,7 +161,7 @@ if __name__ == '__main__':
     game = SnakeGame()
 
     while True:
-        gameover, score = game.play_step()
+        gameover, score = game.step()
 
         if gameover == True:
             break
