@@ -1,5 +1,7 @@
-pygame
+--find-links https://download.pytorch.org/whl/cu113
+pygame==2.1.2
 tensorflow==2.3.0
-gym
-keras
-keras-rl2
+torch==1.11.0
+torchvision==0.12.0 
+torchaudio==0.11.0
+IPython==8.2.0

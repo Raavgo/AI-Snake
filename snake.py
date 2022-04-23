@@ -23,7 +23,7 @@ BLUE2 = [0, 100, 255]
 BLACK = [0, 0, 0]
 
 BLOCKSIZE = 20
-SPEED = 40
+SPEED = 000
 POSITIVE_REWARD = 10
 NEGATIV_REWARD = -10
 NEUTRAL_REWARD = 0
@@ -39,7 +39,7 @@ class SnakeEnv():
             pygame.draw.rect(self.display, BLUE2, pygame.Rect(pt.x+4, pt.y+4, 12, 12))
 
         pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCKSIZE, BLOCKSIZE))
-        text = self.font.render(f'Score: {self.score}', True, WHITE)
+        text = self.font.render(f'Score: {self.score}  Game Iteration: {self.game_iter}', True, WHITE)
         
         self.display.blit(text, [0,0])
         pygame.display.flip()
@@ -78,7 +78,7 @@ class SnakeEnv():
         
         self.head = Point(x, y)
             
-    def _is_collision(self, pt=None):
+    def is_collision(self, pt=None):
         if not pt:
             pt = self.head
 
@@ -96,6 +96,7 @@ class SnakeEnv():
         #Collided with food
         if pt.x == self.food.x and pt.y == self.food.y:
             self.score += 1
+            self.frame_iteration = 0
             self._place_food()
             return POSITIVE_REWARD, False
 
@@ -103,19 +104,20 @@ class SnakeEnv():
 
 
     # Main Game functions
-    def __init__(self, w=1280, h=640):
+    def __init__(self, w=640, h=320):
         pygame.init()
         self.font = pygame.font.Font('Roboto-Regular.ttf', 25)
         self.w = w
         self.h = h
         self.clock = pygame.time.Clock()
+        self.game_iter = 0
 
         self.reset()
 
     
-    def step(self, action):
+    def step(self, action, game_iter):
         self.frame_iteration += 1
-
+        self.game_iter = game_iter
         #1. Collect user Input
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -128,11 +130,16 @@ class SnakeEnv():
         if(len(self.snake)> self.score + 2):
             self.snake.pop()
 
-        reward, collision = self._is_collision()
+        reward, collision = self.is_collision()
         
         #3. Place new food if necessary
-        if collision or self.frame_iteration > 100 * len(self.snake):
+        if collision:
             return reward, collision, self.score
+
+        if self.frame_iteration > (100 * len(self.snake)):
+            return NEGATIV_REWARD, True, self.score
+
+       
 
         #4. Update UI 
         self.render()
